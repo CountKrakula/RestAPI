@@ -35,9 +35,9 @@ namespace RestAPI
             app.UseAuthorization();
 
             // Get all persons
-            app.MapGet("/persons", (PersonDbContext context) =>
+            app.MapGet("/persons", async (PersonDbContext context) =>
             {
-                var persons = context.Persons.ToList();
+                var persons = await context.Persons.ToListAsync();
 
                 if (!persons.Any()) // Check if the list is empty
                 {
@@ -48,13 +48,13 @@ namespace RestAPI
             });
 
             // Hämta alla intressen som är kopplade till en specifik person
-            app.MapGet("/persons/{id}/interests", (PersonDbContext context, int id) =>
+            app.MapGet("/persons/{id}/interests", async (PersonDbContext context, int id) =>
 
             {
-                var interests = context.PersonInterests
+                var interests = await context.PersonInterests
                 .Where(p => p.PersonId == id)
                 .Select(p => p.Interest)
-                .ToList();
+                .ToListAsync();
 
 
 
@@ -68,13 +68,13 @@ namespace RestAPI
             });
 
             // Hämta alla länkar som är kopplade till en specifik person
-            app.MapGet("/persons/{id}/links", (PersonDbContext context, int id) =>
+            app.MapGet("/persons/{id}/links", async (PersonDbContext context, int id) =>
 
             {
-                var links = context.Links
+                var links = await context.Links
                 .Where(p => p.PersonId == id)
                 .Select(p => p)
-                .ToList();
+                .ToListAsync();
 
 
 
@@ -89,7 +89,7 @@ namespace RestAPI
 
 
             //Koppla en person till ett nytt intresse
-            app.MapPut("/persons/{personId}/interests/{interestId}", (PersonDbContext context, int personId, int interestId) =>
+            app.MapPut("/persons/{personId}/interests/{interestId}", async (PersonDbContext context, int personId, int interestId) =>
             {
 
                 var personInterest = context.Persons
@@ -123,13 +123,13 @@ namespace RestAPI
                     InterestId = interestId
                 });
 
-                context.SaveChanges();
+                await context.SaveChangesAsync();
            
                 return Results.Ok("Interest linked to person");
             });
 
             // Lägga in nya länkar för en specifik person och ett specifikt intresse
-            app.MapPost("/persons/{personId}/interests/{interestId}/links", (PersonDbContext context, int personId, int interestId, Link newLink) =>
+            app.MapPost("/persons/{personId}/interests/{interestId}/links", async (PersonDbContext context, int personId, int interestId, Link newLink) =>
             {
                 var person = context.Persons
                 .Where(p => p.Id == personId)
@@ -159,7 +159,7 @@ namespace RestAPI
                 };
 
                 context.Links.Add(link);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
 
                 return Results.Created($"/persons/{personId}/interests/{interestId}/links/{link.Id}", link); // Return the created link with its new ID
             });
